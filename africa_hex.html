@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css" />
+    <link rel="stylesheet" type="text/css" href="sujeetsr-d3.slider/d3.slider.css" media="screen" />
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+    <script src="http://d3js.org/d3.hexbin.v0.min.js"></script>
+    <script src="leaflet-d3/dist/leaflet-d3.min.js" charset="utf-8"></script>
+  </head>
+  <style>
+    .hexbin-hexagon {
+      stroke: #000;
+      stroke-width: .5px;
+    }
+  </style>
+  <body>
+    <div id="map" style="width: 1400px; height: 700px"></div>
+    <div id="option">
+      <button onclick="Treatment()"/>Treatment</button>
+      <button onclick="Control()"/>Control</button>
+    </div>
+    <div id="slider"></div>
+    <script>
+      var map = L.map('map').setView([0.067346, 35.526393], 8);
+      mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+      L.tileLayer('https://{s}.tiles.mapbox.com/v4/warrenronsiek.6f770f94/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoid2FycmVucm9uc2llayIsImEiOiJKanJZN293In0.v2mUhIkiwOYMLTS7OGs9Pw', {
+                  attribution: 'Map data &copy; ' + mapLink,
+                  maxZoom: 18,
+                  }).addTo(map);
+
+      var options = {
+          radius : 7,
+          opacity: 0.5,
+          duration: 200,
+          lng: function(d){ return d[0]; },
+          lat: function(d){ return d[1]; },
+          value: function(d){ return Math.log(d.length); },
+          valueFloor: 0,
+          valueCeil: undefined,
+          colorRange: ['#fff', '#7570b3']
+      };
+      var hexLayer = L.hexbinLayer(options).addTo(map);
+
+      function Treatment() {
+        hexLayer.colorScale().range(['white', 'blue']);
+        d3.csv("migration.csv", function(error, migration) {
+          dataset = migration.filter(function(d) {return (d["treatment"] == 1 && d['dt'] == '2013-08-01')});
+          dataset = dataset.map(function(d) { return [+d["long"],+d["lat"]]; });
+    			hexLayer.data(dataset);
+  		  });
+      };
+      function Control() {
+        hexLayer.colorScale().range(['white', 'green']);
+        d3.csv("migration.csv", function(error, migration) {
+          dataset = migration.filter(function(d) {return (d["treatment"] == 0 && d['dt'] == '2013-08-01')});
+          dataset = dataset.map(function(d) { return [+d["long"],+d["lat"]]; });
+    			hexLayer.data(dataset);
+  		  });
+      };
+    </script>
+  </body>
+</html>
